@@ -11,5 +11,5 @@ class Survey extends Model
      *
      * @var array
      */
-    protected $fillable = ['name', 'color', 'pet'];
+    protected $fillable = ['email', 'name', 'color', 'pet'];
 }

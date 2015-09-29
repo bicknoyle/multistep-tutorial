@@ -16,7 +16,6 @@ class CreateSurveysTable extends Migration
             $table->increments('id');
 
             $table->string('email');
-            $table->integer('last_step')->unsigned()->default(0);
 
             // columns to store answers
             $table->string('name')->nullable();

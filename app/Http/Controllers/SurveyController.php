@@ -9,31 +9,62 @@ use App\Survey;
 
 class SurveyController extends Controller
 {
-    public function create()
+    protected $lastStep = 3;
+
+    public function getSurvey()
     {
         return view('survey.index');
     }
 
-    public function store(Request $request)
+    public function postSurvey(Request $request)
     {
         $this->validate($request, [
             'email' => 'required|email'
         ]);
 
-        $survey = Survey::where(['email' => $request->input('email')])->first();
-        if (!$survey) {
-            $survey = new Survey;
-            $survey->email = $request->input('email');
-            $survey->save();
-        }
+        $survey = Survey::firstOrCreate(['email' => $request->input('email')]);
+        $request->session()->put('survey', $survey);
 
-        $request->session()->put('survey_id', $survey->id);
-
-        return redirect('/survey/step/1');
+        return redirect()->action('SurveyController@getSurveyStep', ['step' => 1]);
     }
 
-    public function step(Request $request, $step)
+    public function getSurveyStep(Request $request, $step)
     {
-        dd($step);
+        return view('survey.step_'.$step, ['survey' => $request->session()->get('survey')]);
+    }
+
+    public function postSurveyStep(Request $request, $step)
+    {
+        switch ($step)
+        {
+            case 1:
+                $rules = ['name' => 'required|min:2|max:50'];
+                break;
+            case 2:
+                $rules = ['color' => 'required|min:3'];
+                break;
+            case 3:
+                $rules = ['pet' => 'required|in:Cats,Dogs'];
+                break;
+            default:
+                abort(400, "No rules for this step!");
+        }
+
+        $this->validate($request, $rules);
+
+        $request->session()->get('survey')
+            ->update($request->all())
+        ;
+
+        if ($step == $this->lastStep) {
+            return redirect()->action('SurveyController@getSurveyDone');
+        }
+
+        return redirect()->action('SurveyController@getSurveyStep', ['step' => $step+1]);
+    }
+
+    public function getSurveyDone()
+    {
+        return '<h1>Thanks! You have completed the survey</h1>';
     }
 }

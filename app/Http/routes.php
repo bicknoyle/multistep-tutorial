@@ -15,10 +15,10 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('survey', 'SurveyController@create');
+Route::get('survey', 'SurveyController@getSurvey');
+Route::post('survey', 'SurveyController@postSurvey');
 
-Route::post('survey', 'SurveyController@store');
+Route::get('survey/step/{step}', 'SurveyController@getSurveyStep')->where(['step' => '[1-3]']);
+Route::post('survey/step/{step}', 'SurveyController@postSurveyStep')->where(['step' => '[1-3]']);
 
-Route::get('survey/step/{step}', 'SurveyController@step')
-	->where(['step' => '[1-3]'])
-;
+Route::get('survey/done', 'SurveyController@getSurveyDone');
