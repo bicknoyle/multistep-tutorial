@@ -18,7 +18,7 @@ Route::get('/', function () {
 Route::get('survey', 'SurveyController@getSurvey');
 Route::post('survey', 'SurveyController@postSurvey');
 
-Route::get('survey/step/{step}', 'SurveyController@getSurveyStep')->where(['step' => '[1-3]']);
+Route::get('survey/step/{step}', 'SurveyController@getSurveyStep');
 Route::post('survey/step/{step}', 'SurveyController@postSurveyStep')->where(['step' => '[1-3]']);
 
 Route::get('survey/done', 'SurveyController@getSurveyDone');

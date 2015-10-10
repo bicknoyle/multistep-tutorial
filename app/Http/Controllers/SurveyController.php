@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\Survey;
+use App\Question;
 
 class SurveyController extends Controller
 {
@@ -30,24 +31,23 @@ class SurveyController extends Controller
 
     public function getSurveyStep(Request $request, $step)
     {
-        return view('survey.step_'.$step, ['survey' => $request->session()->get('survey')]);
+        $questions = $this->getStepQuestions($step);
+
+        return view('survey.step')->with([
+            'questions' => $questions,
+            'step' => $step,
+            'survey' => $request->session()->get('survey')
+        ]);
     }
 
     public function postSurveyStep(Request $request, $step)
     {
-        switch ($step)
-        {
-            case 1:
-                $rules = ['name' => 'required|min:2|max:50'];
-                break;
-            case 2:
-                $rules = ['color' => 'required|min:3'];
-                break;
-            case 3:
-                $rules = ['pet' => 'required|in:Cats,Dogs'];
-                break;
-            default:
-                abort(400, "No rules for this step!");
+        $questions = $this->getStepQuestions($step);
+        $lastStep = Question::max('step');
+
+        $rules = [];
+        foreach ($questions as $question) {
+            $rules[$question->name] = $question->rule;
         }
 
         $this->validate($request, $rules);
@@ -56,7 +56,7 @@ class SurveyController extends Controller
             ->update($request->all())
         ;
 
-        if ($step == $this->lastStep) {
+        if ($step == $lastStep) {
             return redirect()->action('SurveyController@getSurveyDone');
         }
 
@@ -66,5 +66,15 @@ class SurveyController extends Controller
     public function getSurveyDone()
     {
         return '<h1>Thanks! You have completed the survey</h1>';
+    }
+
+    protected function getStepQuestions($step)
+    {
+        $questions = Question::where('step', $step)->get();
+        if (empty($questions)) {
+            abort(404);
+        }
+
+        return $questions;
     }
 }
