@@ -17,7 +17,9 @@ class CreateQuestionsTable extends Migration
 
             $table->integer('step')->unsigned();
             $table->string('name')->unique();
-            $table->string('template');
+            $table->string('type');
+            $table->string('text');
+            $table->text('values')->default('');
             $table->string('rule')->default('');
 
             $table->timestamps();
