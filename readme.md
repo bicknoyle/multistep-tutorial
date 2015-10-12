@@ -10,6 +10,6 @@ http://bicknoyle.com/blog/2015/09/29/building-a-multi-step-survey-with-laravel-5
 
 If you want to view this project for a particular step, use:
 
-	git checkout -f step-1
+	git checkout -f step-1.0
 
 The above example would checkout the version of code at the end of step one.
