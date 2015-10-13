@@ -10,8 +10,6 @@ use App\Question;
 
 class SurveyController extends Controller
 {
-    protected $lastStep = 3;
-
     public function getSurvey()
     {
         return view('survey.index');
