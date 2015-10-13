@@ -51,7 +51,7 @@ class SurveyController extends Controller
         $this->validate($request, $rules);
 
         $request->session()->get('survey')
-            ->update($request->all())
+            ->update($request->only(array_keys($rules)))
         ;
 
         if ($step == $lastStep) {
