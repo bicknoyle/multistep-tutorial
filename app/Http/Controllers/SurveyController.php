@@ -31,7 +31,7 @@ class SurveyController extends Controller
 
     public function getSurveyStep(Request $request, $step)
     {
-        $questions = $this->getStepQuestions($step);
+        $questions = $this->fetchStepQuestions($step);
 
         return view('survey.step')->with([
             'questions' => $questions,
@@ -42,7 +42,7 @@ class SurveyController extends Controller
 
     public function postSurveyStep(Request $request, $step)
     {
-        $questions = $this->getStepQuestions($step);
+        $questions = $this->fetchStepQuestions($step);
         $lastStep = Question::max('step');
 
         $rules = [];
@@ -68,7 +68,7 @@ class SurveyController extends Controller
         return '<h1>Thanks! You have completed the survey</h1>';
     }
 
-    protected function getStepQuestions($step)
+    protected function fetchStepQuestions($step)
     {
         $questions = Question::where('step', $step)->get();
         if (empty($questions)) {
