@@ -10,6 +10,12 @@ use App\Question;
 
 class SurveyController extends Controller
 {
+    public function __construct()
+    {
+
+        $this->middleware('survey', ['only' => ['getSurveyStep', 'postSurveyStep']]);
+    }
+
     public function getSurvey()
     {
         return view('survey.index');
@@ -21,10 +27,15 @@ class SurveyController extends Controller
             'email' => 'required|email'
         ]);
 
-        $survey = Survey::firstOrCreate(['email' => $request->input('email')]);
-        $request->session()->put('survey', $survey);
+        $survey = Survey::firstOrNew(['email' => $request->input('email')]);
+        if (!$survey->exists) {
+            $survey->current_step = 1;
+            $survey->save();
+        }
 
-        return redirect()->action('SurveyController@getSurveyStep', ['step' => 1]);
+        $request->session()->put('survey_id', $survey->id);
+
+        return redirect()->action('SurveyController@getSurveyStep', ['step' => $survey->current_step]);
     }
 
     public function getSurveyStep(Request $request, $step)
@@ -34,14 +45,13 @@ class SurveyController extends Controller
         return view('survey.step')->with([
             'questions' => $questions,
             'step' => $step,
-            'survey' => $request->session()->get('survey')
+            'survey' => $request->survey
         ]);
     }
 
     public function postSurveyStep(Request $request, $step)
     {
         $questions = $this->fetchStepQuestions($step);
-        $lastStep = Question::max('step');
 
         $rules = [];
         foreach ($questions as $question) {
@@ -50,11 +60,13 @@ class SurveyController extends Controller
 
         $this->validate($request, $rules);
 
-        $request->session()->get('survey')
-            ->update($request->only(array_keys($rules)))
-        ;
+        $request->survey->fill($request->only(array_keys($rules)));
+        if ($request->survey->current_step == $step) {
+            $request->survey->current_step++;
+        }
+        $request->survey->save();
 
-        if ($step == $lastStep) {
+        if ($request->survey->current_step > $request->maxStep) {
             return redirect()->action('SurveyController@getSurveyDone');
         }
 
@@ -69,7 +81,7 @@ class SurveyController extends Controller
     protected function fetchStepQuestions($step)
     {
         $questions = Question::where('step', $step)->get();
-        if (empty($questions)) {
+        if (!$questions->count()) {
             abort(404);
         }
 
